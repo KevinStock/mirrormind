@@ -7,6 +7,7 @@ class WidgetCard(BoxLayout):
     grid_size = ObjectProperty((12, 12))
     grid_width = NumericProperty(1)
     grid_height = NumericProperty(1)
+    widget_padding = NumericProperty(10)  # Add padding property
     widget_width = NumericProperty(Window.width * 0.5)
     widget_height = NumericProperty(Window.height * 0.75)
     _resizing = False
@@ -29,8 +30,8 @@ class WidgetCard(BoxLayout):
         cell_w = max(total_width / cols, 1)
         cell_h = max(total_height / rows, 1)
 
-        self.widget_width = min(cell_w * self.grid_width, width)
-        self.widget_height = min(cell_h * self.grid_height, height)
+        self.widget_width = min(cell_w * self.grid_width, width) - 2 * self.widget_padding
+        self.widget_height = min(cell_h * self.grid_height, height) - 2 * self.widget_padding
 
     def on_touch_down(self, touch):
         corner_x = self.right
@@ -86,13 +87,13 @@ class WidgetCard(BoxLayout):
             closest_col = max(min(closest_col, cols - 1), 0)
             closest_row = max(min(closest_row, rows - 1), 0)
 
-            snapped_x = closest_col * cell_w
-            snapped_y = closest_row * cell_h
+            snapped_x = closest_col * cell_w + self.widget_padding
+            snapped_y = closest_row * cell_h + self.widget_padding
 
-            max_x = Window.width - self.width
-            max_y = Window.height - self.height
-            self.x = min(max(snapped_x, 0), max_x)
-            self.y = min(max(snapped_y, 0), max_y)
+            max_x = Window.width - self.width - self.widget_padding
+            max_y = Window.height - self.height - self.widget_padding
+            self.x = min(max(snapped_x, self.widget_padding), max_x)
+            self.y = min(max(snapped_y, self.widget_padding), max_y)
 
             if self.overlay:
                 self.overlay.opacity = 0
