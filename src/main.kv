@@ -1,0 +1,43 @@
+#:kivy 2.0.0
+#:import dp kivy.metrics.dp
+
+<DashboardScreen>:
+    FloatLayout:
+        # Background image that fills the screen.
+        Image:
+            id: bg_image
+            source: "assets/guest_bg.png"
+            allow_stretch: True
+            keep_ratio: False
+        # A grid layout for placing widgets.
+        GridLayout:
+            id: widget_grid
+            cols: 2
+            size_hint: 0.9, 0.9
+            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+            spacing: dp(10)
+        # A small label to show the current profile.
+        Label:
+            id: profile_label
+            size_hint: None, None
+            size: self.texture_size
+            pos_hint: {"top": 1, "right": 1}
+            text: "Profile: guest"
+            
+<WidgetCard>:
+    size_hint: None, None
+    width: root.widget_width
+    height: root.widget_height
+    padding: dp(10)
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 0.8
+        BorderImage:
+            pos: self.pos
+            size: self.size
+            source: "assets/card_bg.png"
+            border: (20, 20, 20, 20)
+    Label:
+        text: root.title
+        halign: 'center'
+        valign: 'middle'
