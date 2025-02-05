@@ -6,6 +6,7 @@ from kivy.core.window import Window
 from recognition.face_recognition import start_recognition
 from widgets.calendar_widget import CalendarWidget
 from widgets.grid_overlay import GridOverlay
+from widgets.upcoming_events_widget import UpcomingEventsWidget
 
 # Explicitly load the KV file if its name does not follow auto-load conventions.
 Builder.load_file('src/main.kv')
@@ -52,11 +53,11 @@ class MirrorMindApp(App):
         # Ensure that widget_grid exists before accessing it.
         widget_grid = self.dashboard.ids.get('widget_grid')
         if widget_grid:
-            cal1 = CalendarWidget(grid_size=(12, 12), grid_width=6, grid_height=6)
+            cal1 = CalendarWidget(grid_size=(12, 12), grid_width=6, grid_height=6,)
             widget_grid.add_widget(cal1)
             cal1.overlay = grid_overlay
             
-            cal2 = CalendarWidget(grid_size=(12, 12), grid_width=3, grid_height=3)
+            cal2 = UpcomingEventsWidget(grid_size=(12, 12), grid_width=3, grid_height=6)
             widget_grid.add_widget(cal2)
             cal2.overlay = grid_overlay
         else:
