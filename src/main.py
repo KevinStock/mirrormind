@@ -57,7 +57,7 @@ class MirrorMindApp(App):
             widget_grid.add_widget(cal1)
             cal1.overlay = grid_overlay
             
-            cal2 = UpcomingEventsWidget(grid_size=(12, 12), grid_width=3, grid_height=6)
+            cal2 = UpcomingEventsWidget(grid_size=(12, 12), grid_width=3, grid_height=12)
             widget_grid.add_widget(cal2)
             cal2.overlay = grid_overlay
         else:

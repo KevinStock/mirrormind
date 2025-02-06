@@ -41,12 +41,13 @@ class CalendarWidget(WidgetCard):
         self.current_year = now.year
         self.current_month = now.month
 
-        # Create a container for the monthly calendar view inside a ScrollView.
-        self.calendar_view = BoxLayout(orientation='vertical', spacing=5, size_hint_y=None)
-        self.calendar_view.bind(minimum_height=self.calendar_view.setter('height'))
-        self.scroll = ScrollView(size_hint=(1, 1))
-        self.scroll.add_widget(self.calendar_view)
-        self.add_widget(self.scroll)
+        # Create a container for the monthly calendar view.
+        self.calendar_view = BoxLayout(orientation='vertical', spacing=5)
+        # Instead of a ScrollView, add calendar_view directly.
+        # Enforce a minimum height so that it doesn't squish too small.
+        min_calendar_height = 300
+        self.calendar_view.height = max(self.height, min_calendar_height)
+        self.add_widget(self.calendar_view)
 
         # Re-render when size changes.
         self.bind(size=self.on_size)
@@ -165,26 +166,51 @@ class CalendarWidget(WidgetCard):
             week_layout = GridLayout(cols=7, spacing=5, size_hint_y=None, height=week_height)
             for day in week:
                 day_box = BoxLayout(orientation='vertical', spacing=2)
-                # Day number label.
-                day_number = Label(text=str(day.day), size_hint_y=None, height=header_height * 0.5)
+                # Add a border around the day_box.
+                with day_box.canvas.before:
+                    from kivy.graphics import Color, Line
+                    Color(0, 0, 0, 1) # Black border
+                    day_box.border = Line(rectangle=(day_box.x, day_box.y, day_box.width, day_box.height), width=1)
+                def update_rect(instance, value):
+                    instance.border.rectangle = (instance.x, instance.y, instance.width, instance.height)
+                day_box.bind(pos=update_rect, size=update_rect)
+
+                # Create a container for the day number with fixed height.
+                date_container = BoxLayout(size_hint_y=None, height=header_height * 0.5)
+                day_number = Label(text=str(day.day), halign='center', valign='middle')
+                # Force the label to render its text centered.
+                day_number.bind(size=day_number.setter('text_size'))
                 if day.month != month:
                     day_number.opacity = 0.5
-                day_box.add_widget(day_number)
+                date_container.add_widget(day_number)
+                day_box.add_widget(date_container)
+
+                # Create an event container that takes the remaining space.
+                event_container = BoxLayout(orientation='vertical', size_hint_y=1)
                 # Add event labels for this day.
                 day_events = occ_by_date.get(day, [])
                 for ev in day_events:
                     try:
                         local_start = to_local_display(ev['dtstart'])
-                        time_str = local_start.strftime('%H:%M')
                         event_summary = ev['summary']
-                        label_text = f"{time_str} {event_summary}"
+                        label_text = f"{event_summary}"
                     except Exception as ex:
                         label_text = "Unnamed"
-                    event_label = Label(text=label_text,
-                                        font_size=10,
-                                        size_hint_y=None,
-                                        height=15,
-                                        color=(1, 0, 0, 1))
-                    day_box.add_widget(event_label)
+                    event_label = Label(
+                        markup=True,
+                        text=label_text,
+                        font_size=10,
+                        size_hint=(None, None),
+                        width=self.width / 7 - 10,  # fixed width per day cell
+                        height=15,
+                        shorten=True,
+                        shorten_from='right',
+                        color=(1, 0, 0, 1),
+                        text_size=(self.width / 7 - 10, 15),
+                        halign='left',
+                        valign='middle'
+                    )
+                    event_container.add_widget(event_label)
+                day_box.add_widget(event_container)
                 week_layout.add_widget(day_box)
             self.calendar_view.add_widget(week_layout)

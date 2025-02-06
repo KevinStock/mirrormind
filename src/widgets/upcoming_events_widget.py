@@ -10,6 +10,7 @@ from kivy.uix.scrollview import ScrollView
 from dotenv import load_dotenv
 from widgets.base_widget import WidgetCard
 from widgets.calendar_common import to_naive_utc, to_local_display, get_parsed_event, connect_to_calendar
+from widgets.no_touch_label import NonTouchLabel
 
 # Load .env from project root
 project_root = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
@@ -136,24 +137,41 @@ class UpcomingEventsWidget(WidgetCard):
                 local_start = to_local_display(ev['dtstart'])
                 local_end = to_local_display(ev['dtend']) if ev['dtend'] else None
                 
-                date_str = local_start.strftime('%Y-%m-%d')
-                start_time = local_start.strftime('%H:%M')
-                end_time = local_end.strftime('%H:%M') if local_end else "N/A"
+                date_str = local_start.strftime('%B %d, %Y')
+                start_time = local_start.strftime('%I:%M %p')
+                end_time = local_end.strftime('%I:%M %p') if local_end else "N/A"
                 
                 title = ev['summary']
                 if hasattr(title, 'to_ical'):
                     title = title.to_ical().decode('utf-8')
                 else:
                     title = str(title)
-                                  
+                
                 details = (
                     f"[b]{date_str}[/b]\n"
                     f"{start_time} - {end_time}\n"
                     f"{title}"
-            )
+                )
             except Exception as ex:
                 details = "Event details unavailable"
                 print(f"Failed to render event details: {ex}")
+            label = NonTouchLabel(
+                text=details,
+                size_hint_y=None,
+                markup=True,
+                halign='left',
+                text_size=(self.width - 20, None)
+            )
+            def update_height(instance, value):
+                instance.height = instance.texture_size[1] + 20  # add padding if desired
+            label.bind(texture_size=update_height)
             
-            label = Label(text=details, size_hint_y=None, height=80, markup=True)
+            # Draw a border around the label.
+            from kivy.graphics import Color, Line
+            with label.canvas.before:
+                Color(0, 0, 0, .25)
+                label.border_line = Line(rectangle=(label.x, label.y, label.width, label.height), width=1)
+            def update_label_border(instance, value):
+                instance.border_line.rectangle = (instance.x, instance.y, instance.width, instance.height)
+            label.bind(pos=update_label_border, size=update_label_border)
             self.event_list.add_widget(label)
